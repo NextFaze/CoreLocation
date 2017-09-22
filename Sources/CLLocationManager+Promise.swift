@@ -35,13 +35,13 @@ extension CLLocationManager {
       want to force one or the other, change this parameter from its default
       value.
      */
-    public class func requestLocation(_: PMKNamespacer, authorizationType: RequestAuthorizationType = .automatic) -> Promise<[CLLocation]> {
+    public class func requestLocation(authorizationType: RequestAuthorizationType = .automatic) -> Promise<[CLLocation]> {
         return promise(yielding: auther(authorizationType))
     }
 
     @available(*, deprecated: 5.0, renamed: "requestLocation")
     public class func promise(_ requestAuthorizationType: RequestAuthorizationType = .automatic) -> Promise<[CLLocation]> {
-        return requestLocation(.promise, authorizationType: requestAuthorizationType)
+        return requestLocation(authorizationType: requestAuthorizationType)
     }
 
     private class func promise(yielding yield: (CLLocationManager) -> Void = { _ in }) -> Promise<[CLLocation]> {
@@ -123,9 +123,10 @@ private func auther(_ requestAuthorizationType: CLLocationManager.RequestAuthori
 
         switch requestAuthorizationType {
         case .automatic:
+            let alwaysAndWhenInUse = hasInfoPlistKey("NSLocationAlwaysAndWhenInUsageDescription")
             let always = hasInfoPlistKey("NSLocationAlwaysUsageDescription")
             let whenInUse = hasInfoPlistKey("NSLocationWhenInUseUsageDescription")
-            if always {
+            if always || alwaysAndWhenInUse {
                 manager.requestAlwaysAuthorization()
             } else {
                 if !whenInUse { NSLog("PromiseKit: Warning: `NSLocationWhenInUseUsageDescription` key not set") }
